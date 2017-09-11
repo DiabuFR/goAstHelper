@@ -16,11 +16,11 @@ type (
 	GenDecl struct {
 		node *ast.GenDecl
 	}
+
+	TypeDecl struct {
+		node *ast.GenDecl
+	}
 )
-
-func NewFuncDecl(name string) *FuncDecl {
-	return &FuncDecl{&ast.FuncDecl{Name: ast.NewIdent(name)}}
-}
-
 func (d *FuncDecl) asthDeclNode() ast.Decl { return d.node }
 func (d *GenDecl) asthDeclNode() ast.Decl  { return d.node }
+func (d *TypeDecl) asthDeclNode() ast.Decl { return d.node }

@@ -34,9 +34,9 @@ func unwrapSelectorExpr(e ast.Expr) string {
 	case *ast.SelectorExpr:
 		switch j := i.X.(type) {
 		case *ast.Ident:
-			return j.Name
+			return j.Name + "." + i.Sel.Name
 		case *ast.SelectorExpr:
-			return unwrapSelectorExpr(i) + "." + j.Sel.Name
+			return unwrapSelectorExpr(j) + "." + i.Sel.Name
 		default:
 			return fmt.Sprintf("[INVALID_%s]", j)
 		}

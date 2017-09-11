@@ -30,16 +30,16 @@ func (v *BaseRvalue) asthRValue() ast.Expr { return v.expr }
 func (v *BaseLvalue) asthRValue() ast.Expr { return v.expr }
 func (v *BaseLvalue) asthLValue() ast.Expr { return v.expr }
 
-func NewVarAssignSpec(name string, typ *TypeRef) *VarAssignSpec {
+func NewVarAssignSpec(name string, typ Type) *VarAssignSpec {
 	ident := ast.NewIdent(name)
 	ident.Obj = &ast.Object{
 		Name: name,
-		Type: typ.node,
+		Type: typ.asthType(),
 		Kind: ast.Var,
 	}
 	return &VarAssignSpec{&ast.ValueSpec{
 		Names: []*ast.Ident{ident},
-		Type:  typ.node,
+		Type:  typ.asthType(),
 	}}
 }
 
@@ -50,21 +50,17 @@ func (s *VarAssignSpec) WithValue(val Rvalue) *VarAssignSpec {
 
 // Helper functions
 
-func NewVarDecl(spec *VarAssignSpec) *GenDecl {
-	return &GenDecl{
-		&ast.GenDecl{
-			Tok:   token.VAR,
-			Specs: []ast.Spec{spec.spec},
-		},
+func NewVarDecl(specs ...*VarAssignSpec) *GenDecl {
+	pos := token.NoPos
+	if len(specs) > 1 {
+		pos = 1 // We just need something valid (!=0)
 	}
-}
-func NewVarGroupDecl(specs ...*VarAssignSpec) *GenDecl {
 	d := &GenDecl{
 		&ast.GenDecl{
 			Tok:    token.VAR,
 			Specs:  []ast.Spec{},
-			Lparen: 1, // We just need something valid (!=0)
-			Rparen: 1, // We just need something valid (!=0)
+			Lparen: pos,
+			Rparen: pos,
 		},
 	}
 	for _, s := range specs {

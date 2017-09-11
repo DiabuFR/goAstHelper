@@ -7,22 +7,14 @@ import (
 )
 
 type File struct {
+	Name string
+
 	node *ast.File
 
 	importDecl *ast.GenDecl
 	importDoc  *ast.CommentGroup
 
 	objects map[string]*ast.Object
-}
-
-func NewFile(pack string) *File {
-	file := File{
-		node: &ast.File{
-			Name: ast.NewIdent(pack),
-		},
-		objects: map[string]*ast.Object{},
-	}
-	return &file
 }
 
 func (f *File) DefinedObject(name string) Lvalue {
@@ -79,7 +71,7 @@ func (f *File) AddImports(imp ...*ImportSpec) {
 	ast.SortImports(token.NewFileSet(), f.node)
 }
 
-func (f *File) AddDecl(decl Decl) {
+func (f *File) addDecl(decl Decl) {
 	switch d := decl.(type) {
 	case *GenDecl:
 		switch d.node.Tok {
@@ -101,4 +93,12 @@ func (f *File) AddDecl(decl Decl) {
 	}
 
 	f.node.Decls = append(f.node.Decls, decl.asthDeclNode())
+}
+func (f *File) AddDecls(decls ...Decl) {
+	for _, d := range decls {
+		if d == nil {
+			continue
+		}
+		f.addDecl(d)
+	}
 }
