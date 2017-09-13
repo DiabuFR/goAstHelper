@@ -31,7 +31,8 @@ func (s *Block) asthStatement() ast.Stmt  { return s.node }
 func (s *Assign) asthStatement() ast.Stmt { return s.node }
 func (s *Return) asthStatement() ast.Stmt { return s.node }
 func (s *Call) asthStatement() ast.Stmt   { return s.node }
-func (s *Call) asthRValue() ast.Expr      { return s.node.X }
+
+func (s *Call) asthRValue() ast.Expr { return s.node.X }
 
 func NewBlock(stmts ...Statement) *Block {
 	b := &Block{&ast.BlockStmt{List: []ast.Stmt{}}}
@@ -51,12 +52,39 @@ func NewAssign(l Lvalue, r Rvalue) *Assign {
 	}
 }
 
+func NewMultAssign(lv []Lvalue, rv []Rvalue) *Assign {
+	l := []ast.Expr{}
+	r := []ast.Expr{}
+
+	for _, i := range lv {
+		l = append(l, i.asthLValue())
+	}
+
+	for _, i := range rv {
+		r = append(r, i.asthRValue())
+	}
+
+	return &Assign{
+		node: &ast.AssignStmt{
+			Lhs: l,
+			Rhs: r,
+			Tok: token.DEFINE,
+		},
+	}
+}
+
 func NewReturn(e Rvalue) *Return {
 	return &Return{
 		node: &ast.ReturnStmt{
 			Results: []ast.Expr{e.asthRValue()},
 		},
 	}
+}
+
+func NewMakeCall(typ Type) *Call {
+	c := NewCall(nil, "make")
+	c.addArgs(typ.asthType())
+	return c
 }
 
 func NewCall(receiver Rvalue, fctName string) *Call {
@@ -77,10 +105,15 @@ func NewCall(receiver Rvalue, fctName string) *Call {
 	}
 }
 
-func (c *Call) WithArgs(params ...Rvalue) *Call {
-	expr := c.node.X.(*ast.CallExpr)
+func (s *Call) WithArgs(params ...Rvalue) *Call {
 	for _, p := range params {
-		expr.Args = append(expr.Args, p.asthRValue())
+		s.addArgs(p.asthRValue())
 	}
-	return c
+	return s
+}
+
+func (s *Call) addArgs(p ast.Expr) *Call {
+	expr := s.node.X.(*ast.CallExpr)
+	expr.Args = append(expr.Args, p)
+	return s
 }

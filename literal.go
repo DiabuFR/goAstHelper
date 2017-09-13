@@ -33,7 +33,7 @@ var (
 	EmptyString = NewStringLiteral("")
 )
 
-func NewIdentifier(name string) *Identifier {
+func NewIdent(name string) *Identifier {
 	return &Identifier{&BaseRvalue{expr: ast.NewIdent(name)}}
 }
 func NewStringLiteral(v string) *BasicLiteral {
@@ -56,6 +56,11 @@ func NewFloatLiteral(v float64) *BasicLiteral {
 }
 func (l *BasicLiteral) asthLiteralExpr() ast.Expr { return l.expr }
 func (l *Identifier) asthLValue() ast.Expr        { return l.expr }
+
+func (l *Identifier) Cast(typ Type) *Identifier {
+	// FIXME What to do here ?
+	return l
+}
 
 // MAP
 func NewMapLiteral(keyType *TypeRef, valType *TypeRef) *MapLiteral {
@@ -100,14 +105,14 @@ func (l *MapLiteral) asthRValue() ast.Expr      { return l.expr }
 func NewStructLiteral() *StructLiteral {
 	return &StructLiteral{&ast.CompositeLit{}}
 }
-func NewStructTypedLiteral(typ Type) *StructLiteral {
+func NewStructTypedLit(typ Type) *StructLiteral {
 	return &StructLiteral{
 		&ast.CompositeLit{
 			Type: typ.asthType(),
 		},
 	}
 }
-func (l *StructLiteral) AddField(f *StructFieldValue) *StructLiteral {
+func (l *StructLiteral) addField(f *StructFieldValue) *StructLiteral {
 	l.expr.Elts = append(l.expr.Elts, f.expr)
 	return l
 }
@@ -116,7 +121,7 @@ func (l *StructLiteral) AddFields(fs ...*StructFieldValue) *StructLiteral {
 		if f == nil {
 			continue
 		}
-		l.AddField(f)
+		l.addField(f)
 	}
 	return l
 }
@@ -129,7 +134,7 @@ type StructFieldValue struct {
 }
 
 /// When definining values in a struct awhen specifying the field name
-func NewStructFieldNamedValue(name string, val Rvalue) *StructFieldValue {
+func NewStructFieldNamedVal(name string, val Rvalue) *StructFieldValue {
 	return &StructFieldValue{
 		&ast.KeyValueExpr{
 			Key:   ast.NewIdent(name),

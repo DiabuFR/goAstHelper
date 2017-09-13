@@ -1,6 +1,7 @@
 package asth
 
 import (
+	"fmt"
 	"go/ast"
 	"go/token"
 	"strings"
@@ -24,6 +25,16 @@ func (f *File) DefinedObject(name string) Lvalue {
 	}
 
 	return &BaseLvalue{expr: ast.NewIdent(o.Name)}
+}
+
+func (f *File) ListObjects() []string {
+	objs := []string{}
+
+	for k, v := range f.objects {
+		typ := v.Type.(Type)
+		objs = append(objs, fmt.Sprintf("%s: %s\t(Type: %s)", f.Name, k, typ.asthTypeName()))
+	}
+	return objs
 }
 
 func (f *File) defineObject(obj *ast.Object) {
@@ -73,13 +84,21 @@ func (f *File) AddImports(imp ...*ImportSpec) {
 
 func (f *File) addDecl(decl Decl) {
 	switch d := decl.(type) {
+	case *TypeDecl:
+		for _, t := range d.node.Specs {
+			tspec, ok := t.(*ast.TypeSpec)
+			if !ok {
+				panic("TYPE GenDecl contains a non TypeValue spec.")
+			}
+			f.defineObject(tspec.Name.Obj)
+		}
 	case *GenDecl:
 		switch d.node.Tok {
-		case token.VAR:
+		case token.VAR | token.CONST:
 			for _, v := range d.node.Specs {
 				vspec, ok := v.(*ast.ValueSpec)
 				if !ok {
-					panic("VAR GenDecl contains a non ValueSpec spec.")
+					panic("VAR/CONST GenDecl contains a non ValueSpec spec.")
 				}
 				for _, name := range vspec.Names {
 					if strings.Contains(name.Name, ".") {

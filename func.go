@@ -61,7 +61,11 @@ func (f *FuncDecl) WithParams(vals ...Param) *FuncDecl {
 	return f
 }
 
-func (f *FuncDecl) WithBody(b *Block) *FuncDecl {
+func (f *FuncDecl) WithBody(stmts ...Statement) *FuncDecl {
+	f.node.Body = NewBlock(stmts...).node
+	return f
+}
+func (f *FuncDecl) WithBodyBlk(b *Block) *FuncDecl {
 	f.node.Body = b.node
 	return f
 }

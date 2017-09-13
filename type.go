@@ -1,6 +1,7 @@
 package asth
 
 import (
+	"fmt"
 	"go/ast"
 	"go/token"
 	"strings"
@@ -11,14 +12,17 @@ var (
 	IntType     = NewTypeRef("int")
 	UIntType    = NewTypeRef("uint")
 	UInt64Type  = NewTypeRef("uint64")
+	ByteType    = NewTypeRef("byte")
 	BoolType    = NewTypeRef("bool")
 	Float32Type = NewTypeRef("float32")
 	Float64Type = NewTypeRef("float64")
+	ErrorType   = NewTypeRef("error")
 )
 
 type (
 	Type interface {
 		asthType() ast.Expr
+		asthTypeName() string
 	}
 
 	TypeRef struct {
@@ -47,17 +51,23 @@ type (
 	}
 )
 
-func (t *TypeRef) asthType() ast.Expr       { return t.node }
-func (t *MapType) asthType() ast.Expr       { return t.node }
-func (t *StructType) asthType() ast.Expr    { return t.node }
-func (t *InterfaceType) asthType() ast.Expr { return t.node }
+func (t *TypeRef) asthTypeName() string       { return selectorToPath(t.node) }
+func (t *TypeRef) asthType() ast.Expr         { return t.node }
+func (t *TypeSpec) asthTypeName() string      { return t.node.Name.Name }
+func (t *TypeSpec) asthType() ast.Expr        { return t.node.Name }
+func (t *MapType) asthTypeName() string       { return fmt.Sprintf("map[%s]%s", t.node.Key, t.node.Value) }
+func (t *MapType) asthType() ast.Expr         { return t.node }
+func (t *StructType) asthTypeName() string    { return "struct{...}" } // FIXME
+func (t *StructType) asthType() ast.Expr      { return t.node }
+func (t *InterfaceType) asthTypeName() string { return "interface{...}" } // FIXME
+func (t *InterfaceType) asthType() ast.Expr   { return t.node }
 
 func NewTypeRef(path string) *TypeRef {
 	p := pathToSelectorExpr(strings.Split(path, ".")...)
 	return &TypeRef{p}
 }
 
-func NewTypeDecl(specs ...TypeSpec) *TypeDecl {
+func NewTypeDecl(specs ...*TypeSpec) *TypeDecl {
 	pos := token.NoPos
 	if len(specs) > 1 {
 		pos = 1 // We just need something valid (!=0)
@@ -80,10 +90,16 @@ func NewMapType(key Type, val Type) *MapType {
 	return &MapType{node: &ast.MapType{Key: key.asthType(), Value: val.asthType()}}
 }
 
-func NewTypeSpec(name string, typ Type) TypeSpec {
-	return TypeSpec{
+func NewTypeSpec(name string, typ Type) *TypeSpec {
+	ident := ast.NewIdent(name)
+	ident.Obj = &ast.Object{
+		Name: name,
+		Type: typ,
+		Kind: ast.Typ,
+	}
+	return &TypeSpec{
 		node: &ast.TypeSpec{
-			Name: ast.NewIdent(name),
+			Name: ident,
 			Type: typ.asthType(),
 		},
 	}

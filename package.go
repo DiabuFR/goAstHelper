@@ -6,6 +6,7 @@ import (
 	"go/printer"
 	"go/token"
 	"os"
+	"strings"
 )
 
 type (
@@ -40,7 +41,20 @@ func (p *Package) DefinedObject(name string) Lvalue {
 			return o
 		}
 	}
+
+	defined := p.ListObjects()
+	err := fmt.Errorf("Unknown object `%s`. Defined objects are:\n\t%s", name, strings.Join(defined, "\n\t"))
+	panic(err)
 	return nil
+}
+
+func (p *Package) ListObjects() []string {
+	objs := []string{}
+
+	for _, f := range p.files {
+		objs = append(f.ListObjects(), objs...)
+	}
+	return objs
 }
 
 func (p *Package) WriteFiles(outDir string, cfg printer.Config) error {
