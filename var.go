@@ -1,6 +1,7 @@
 package asth
 
 import (
+	"fmt"
 	"go/ast"
 	"go/token"
 )
@@ -54,6 +55,10 @@ func (s *VarAssignSpec) WithValue(val Rvalue) *VarAssignSpec {
 // Helper functions
 
 func NewVarDecl(specs ...*VarAssignSpec) *GenDecl {
+	if len(specs) == 0 {
+		fmt.Println("Empty NewVarDecl")
+		return nil
+	}
 	pos := token.NoPos
 	if len(specs) > 1 {
 		pos = 1 // We just need something valid (!=0)

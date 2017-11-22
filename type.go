@@ -10,6 +10,7 @@ import (
 var (
 	StringType  = NewTypeRef("string")
 	IntType     = NewTypeRef("int")
+	Int64Type   = NewTypeRef("int64")
 	UIntType    = NewTypeRef("uint")
 	UInt64Type  = NewTypeRef("uint64")
 	ByteType    = NewTypeRef("byte")

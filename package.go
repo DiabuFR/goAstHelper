@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/printer"
 	"go/token"
+	"log"
 	"os"
 	"strings"
 )
@@ -44,7 +45,7 @@ func (p *Package) DefinedObject(name string) Lvalue {
 
 	defined := p.ListObjects()
 	err := fmt.Errorf("Unknown object `%s`. Defined objects are:\n\t%s", name, strings.Join(defined, "\n\t"))
-	panic(err)
+	log.Println("Warning:", err)
 	return nil
 }
 
@@ -62,6 +63,7 @@ func (p *Package) WriteFiles(outDir string, cfg printer.Config) error {
 	files := p.files
 
 	for k, v := range files {
+		log.Println("Exporting file", k)
 		path := fmt.Sprintf("%s/%s", outDir, k)
 		out, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC, os.ModePerm)
 		if err != nil {

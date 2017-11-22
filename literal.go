@@ -24,6 +24,9 @@ type (
 	MapLiteral struct {
 		expr *ast.CompositeLit
 	}
+	SliceLit struct {
+		expr *ast.CompositeLit
+	}
 )
 
 var (
@@ -37,7 +40,7 @@ func NewIdent(name string) *Identifier {
 	return &Identifier{&BaseRvalue{expr: ast.NewIdent(name)}}
 }
 func NewStringLiteral(v string) *BasicLiteral {
-	return &BasicLiteral{&BaseRvalue{&ast.BasicLit{Kind: token.STRING, Value: "\"" + v + "\""}}}
+	return &BasicLiteral{&BaseRvalue{&ast.BasicLit{Kind: token.STRING, Value: "`" + v + "`"}}}
 }
 func NewBackquoteStringLiteral(v string) *BasicLiteral {
 	return &BasicLiteral{&BaseRvalue{&ast.BasicLit{Kind: token.STRING, Value: "`" + v + "`"}}}
@@ -57,10 +60,38 @@ func NewFloatLiteral(v float64) *BasicLiteral {
 func (l *BasicLiteral) asthLiteralExpr() ast.Expr { return l.expr }
 func (l *Identifier) asthLValue() ast.Expr        { return l.expr }
 
-func (l *Identifier) Cast(typ Type) *Identifier {
-	// FIXME What to do here ?
+// SLICE
+
+func NewSliceLit() *SliceLit {
+	return NewTypedSliceLit(nil)
+}
+
+func NewTypedSliceLit(typ Type) *SliceLit {
+	s := &SliceLit{
+		&ast.CompositeLit{
+		},
+	}
+	if typ != nil {
+		s.expr.Type = typ.asthType()
+	}
+	return s
+}
+
+func (l *SliceLit) Append(ls ...Rvalue) *SliceLit {
+	if ls == nil {
+		return l
+	}
+	for _, v := range ls {
+		if v == nil {
+			continue
+		}
+		l.expr.Elts = append(l.expr.Elts, v.asthRValue())
+	}
 	return l
 }
+
+func (l *SliceLit) asthLiteralExpr() ast.Expr { return l.expr }
+func (l *SliceLit) asthRValue() ast.Expr      { return l.expr }
 
 // MAP
 func NewMapLiteral(keyType *TypeRef, valType *TypeRef) *MapLiteral {

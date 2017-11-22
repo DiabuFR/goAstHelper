@@ -43,7 +43,6 @@ func (f *File) defineObject(obj *ast.Object) {
 
 func (f *File) WithImportDoc(lines ...string) *File {
 	list := []*ast.Comment{}
-
 	for _, l := range lines {
 		l = "///" + l
 		list = append(list, &ast.Comment{Text: l})
@@ -116,6 +115,9 @@ func (f *File) addDecl(decl Decl) {
 func (f *File) AddDecls(decls ...Decl) {
 	for _, d := range decls {
 		if d == nil {
+			continue
+		}
+		if d.asthDeclNode() == nil {
 			continue
 		}
 		f.addDecl(d)
