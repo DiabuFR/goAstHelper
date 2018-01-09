@@ -10,8 +10,10 @@ import (
 var (
 	StringType  = NewTypeRef("string")
 	IntType     = NewTypeRef("int")
+	Int32Type   = NewTypeRef("int32")
 	Int64Type   = NewTypeRef("int64")
 	UIntType    = NewTypeRef("uint")
+	UInt32Type    = NewTypeRef("uint32")
 	UInt64Type  = NewTypeRef("uint64")
 	ByteType    = NewTypeRef("byte")
 	BoolType    = NewTypeRef("bool")
